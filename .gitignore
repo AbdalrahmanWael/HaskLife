@@ -1,0 +1,27 @@
+# Build artifacts
+dist/
+dist-newstyle/
+*.o
+*.hi
+*.tix
+*.ghc.environment.*
+cabal.project.local
+
+# Executable files
+*.exe
+*.prof
+*.aux
+
+# Stack and Cabal files
+cabal.project.local
+cabal.project
+cabal.config
+stack.yaml
+
+# Generated files
+*.cabal
+
+# Haskell language server files
+.haskell-language-server
+.hls-vscode
+.hls-config.json
