@@ -1,12 +1,15 @@
 module Main where
 import System.Random (randomRIO)
 import Control.Monad (replicateM)
+import System.Process (system)
+import Control.Concurrent (threadDelay)
+import System.Console.Terminal.Size (size, height, width, Window)
 
 main :: IO ()
 main = do
-  initialGrid <- generateRandomGrid 30 60 
-  putStrLn "Initial Grid:"
-  printGrid initialGrid
+  terminalSize <- getTerminalSize
+  let (rows, cols) = maybe (30, 60) id terminalSize
+  initialGrid <- generateRandomGrid rows cols
   runGenerations initialGrid 50000
 
 data Cell = Alive | Dead
@@ -14,7 +17,7 @@ data Cell = Alive | Dead
 
 instance Show Cell where 
   show Alive = "█"
-  show Dead = " "
+  show Dead = "░"
 
 type Row = [Cell]
 type Grid = [Row]
@@ -28,9 +31,6 @@ generateRandomGrid rows cols = do
       r <- randomRIO (0, 1) :: IO Int
       return $ if r == 0 then Dead else Alive
 
-
-initialGrid:: Grid 
-initialGrid = [[Dead, Dead, Alive], [Alive, Alive, Alive], [Dead, Dead, Dead]]
 
 evolveGrid:: Grid -> Grid 
 evolveGrid grid = 
@@ -59,19 +59,33 @@ getNeighbors grid x y = [grid !! j !! i | i <- [x-1..x+1], j <- [y-1..y+1], (i /
 isValid:: Grid -> Int -> Int -> Bool
 isValid grid i j = i >= 0 && j >= 0 && j < length grid && i < length  (grid !! 0)
 
-printGrid :: Grid -> IO ()
+printGrid:: Grid -> IO ()
 printGrid grid = mapM_ (putStrLn . concatMap show) grid
 
--- printGrid :: Grid -> IO ()
--- printGrid [] = return () 
--- printGrid (row:rows) = do
---   putStrLn (concatMap show row) 
---   printGrid rows               
+clearScreen:: IO () 
+clearScreen = do 
+  _ <- system "clear" -- cls for windows
+  pure ()
+
+getTerminalSize:: IO (Maybe (Int, Int))
+getTerminalSize = do
+  maybeWindow <- size
+  return $ fmap (\win -> (height win, width win)) maybeWindow
+
+adjustGridToTerminal:: Grid -> IO Grid
+adjustGridToTerminal grid = do 
+  maybeSize <- getTerminalSize
+  case maybeSize of 
+    Just (h, w) -> return $ take (h - 2) $ map (take (w - 1)) grid
+    Nothing -> return grid
 
 runGenerations :: Grid -> Int -> IO ()
 runGenerations grid 0 = return ()
 runGenerations grid n = do
-  let newGrid = evolveGrid grid
-  putStrLn $ "\nGeneration " ++ show (n) ++ ":"
-  printGrid newGrid
+  clearScreen
+  adjustedGrid <- adjustGridToTerminal grid
+  let newGrid = evolveGrid adjustedGrid
+  putStrLn $ "Generation " ++ show (50000 - n + 1) ++ ":"
+  printGrid adjustedGrid
+  threadDelay 100000  -- microseconds (0.1 seconds)
   runGenerations newGrid (n - 1)
