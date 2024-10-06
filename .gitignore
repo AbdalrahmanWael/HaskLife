@@ -18,8 +18,6 @@ cabal.project
 cabal.config
 stack.yaml
 
-# Generated files
-*.cabal
 
 # Haskell language server files
 .haskell-language-server
