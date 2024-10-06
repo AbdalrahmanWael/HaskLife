@@ -2,6 +2,8 @@
 
 This is an implementation of Conway's Game of Life in Haskell. It simulates cellular automaton on the terminal with customizable grid size and automatic terminal size adjustments.
 
+![Demo Gif Of HaskLife](./assets/demo.gif)
+
 ## Features:
 - Random initial grid generation.
 - Dynamic terminal size adjustment.
