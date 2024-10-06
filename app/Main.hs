@@ -10,7 +10,9 @@ main = do
   terminalSize <- getTerminalSize
   let (rows, cols) = maybe (30, 60) id terminalSize
   initialGrid <- generateRandomGrid rows cols
+  hideCursor
   runGenerations initialGrid 50000
+  showCursor
 
 data Cell = Alive | Dead
   deriving (Eq)
@@ -63,9 +65,13 @@ printGrid:: Grid -> IO ()
 printGrid grid = mapM_ (putStrLn . concatMap show) grid
 
 clearScreen:: IO () 
-clearScreen = do 
-  _ <- system "clear" -- cls for windows
-  pure ()
+clearScreen = putStr "\ESC[H"  -- Moves the cursor to the top-left without clearing the screen
+
+hideCursor :: IO ()
+hideCursor = putStr "\ESC[?25l" 
+
+showCursor :: IO ()
+showCursor = putStr "\ESC[?25h" 
 
 getTerminalSize:: IO (Maybe (Int, Int))
 getTerminalSize = do
